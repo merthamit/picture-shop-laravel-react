@@ -27,10 +27,15 @@ x-laravel-env: &laravel-env
   RABBITMQ_PASSWORD: secret
   RABBITMQ_VHOST: /
 
+  # Defaults to Mailpit (catches every e-mail locally, http://localhost:8025).
+  # Set MAIL_* in .env to deliver to real inboxes (e.g. Gmail SMTP).
   MAIL_MAILER: smtp
-  MAIL_HOST: mailpit
-  MAIL_PORT: 1025
-  MAIL_FROM_ADDRESS: shop@picture-shop.test
+  MAIL_HOST: ${MAIL_HOST:-mailpit}
+  MAIL_PORT: ${MAIL_PORT:-1025}
+  MAIL_USERNAME: ${MAIL_USERNAME:-}
+  MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+  MAIL_ENCRYPTION: ${MAIL_ENCRYPTION:-}
+  MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS:-shop@picture-shop.test}
 
   FRONTEND_URL: http://localhost:5173
   STRIPE_SECRET: ${STRIPE_SECRET:-}
