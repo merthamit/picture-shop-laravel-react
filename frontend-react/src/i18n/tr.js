@@ -172,6 +172,7 @@ const tr = {
     processing: "İşleniyor...",
     success: "Ödeme başarılı! Fotoğraflarınız indirilmeye hazır.",
     initFailed: "Ödeme başlatılamadı. Lütfen daha sonra tekrar deneyin.",
+    notConfigured: "Ödeme sistemi henüz yapılandırılmadı (Stripe açık anahtarı eksik).",
     testCard: "Test modu: 4242 4242 4242 4242 kartını, ileri bir tarihi ve herhangi bir CVC'yi kullanın.",
     verifyFirst: "Satın almadan önce lütfen e-posta adresinizi doğrulayın.",
   },

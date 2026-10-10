@@ -172,6 +172,7 @@ const en = {
     processing: "Processing...",
     success: "Payment successful! Your pictures are ready to download.",
     initFailed: "Payment could not be initialized. Please try again later.",
+    notConfigured: "Payments are not configured yet (missing Stripe publishable key).",
     testCard: "Test mode: use card 4242 4242 4242 4242, any future date and any CVC.",
     verifyFirst: "Please verify your e-mail address before buying.",
   },

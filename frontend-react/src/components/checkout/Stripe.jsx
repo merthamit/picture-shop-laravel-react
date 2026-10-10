@@ -8,10 +8,9 @@ import CheckoutForm from "./CheckoutForm";
 import Spinner from "../layouts/Spinner";
 import { useT } from "../../i18n";
 
-const stripePromise = loadStripe(
-  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ||
-    "pk_test_51PtWxg06PAiJgxypTXDSJH8vg4qM38YFyp7hOXObPCb6QdkclUpuPtduDXrlF0qw5vfq2WFZYTeXW475CNPGnXNs00Bng3oyL1"
-);
+// Publishable key comes from .env (VITE_STRIPE_PUBLISHABLE_KEY) at build time
+const publishableKey = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
+const stripePromise = publishableKey ? loadStripe(publishableKey) : null;
 
 export default function Stripe() {
   const [clientSecret, setClientSecret] = useState("");
@@ -21,6 +20,10 @@ export default function Stripe() {
   const t = useT();
 
   useEffect(() => {
+    if (!stripePromise) {
+      setError(t("checkout.notConfigured"));
+      return;
+    }
     fetchClientSecret();
   }, []);
 
