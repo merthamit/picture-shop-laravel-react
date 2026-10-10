@@ -4,18 +4,24 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
     /**
      * Display all the users
      */
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::latest()->get();
-        return view('admin.users.index')->with([
-            'users' => $users,
-        ]);
+        $users = User::withCount(['pictures', 'orders'])
+            ->when($request->filled('q'), fn ($q) => $q->where(fn ($w) => $w
+                ->where('name', 'like', '%' . $request->q . '%')
+                ->orWhere('email', 'like', '%' . $request->q . '%')))
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('admin.users.index', compact('users'));
     }
 
     /**
@@ -25,7 +31,7 @@ class UserController extends Controller
     {
         $user->delete();
 
-        return redirect()->route('admin.users.index')->with([
+        return back()->with([
             'success' => 'User has been deleted successfully',
         ]);
     }

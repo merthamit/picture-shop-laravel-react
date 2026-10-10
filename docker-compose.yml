@@ -1,0 +1,170 @@
+name: picture-shop
+
+x-laravel-env: &laravel-env
+  APP_NAME: "Picture Shop"
+  APP_ENV: local
+  APP_DEBUG: "true"
+  APP_URL: http://localhost:8000
+  CDN_URL: http://localhost:8080
+
+  DB_CONNECTION: mysql
+  DB_HOST: mysql
+  DB_PORT: 3306
+  DB_DATABASE: picture_shop
+  DB_USERNAME: picture_shop
+  DB_PASSWORD: secret
+
+  REDIS_CLIENT: phpredis
+  REDIS_HOST: redis
+  REDIS_PORT: 6379
+  CACHE_STORE: redis
+  SESSION_DRIVER: redis
+
+  QUEUE_CONNECTION: rabbitmq
+  RABBITMQ_HOST: rabbitmq
+  RABBITMQ_PORT: 5672
+  RABBITMQ_USER: picture_shop
+  RABBITMQ_PASSWORD: secret
+  RABBITMQ_VHOST: /
+
+  MAIL_MAILER: smtp
+  MAIL_HOST: mailpit
+  MAIL_PORT: 1025
+  MAIL_FROM_ADDRESS: shop@picture-shop.test
+
+  FRONTEND_URL: http://localhost:5173
+  STRIPE_SECRET: ${STRIPE_SECRET:-}
+  # Media storage + CDN. Empty = local disk behind the nginx "cdn" container
+  CLOUDINARY_URL: ${CLOUDINARY_URL:-}
+
+x-laravel-app: &laravel-app
+  build:
+    context: ./backend-laravel
+    target: app
+  image: picture-shop/app:latest
+  volumes:
+    - media:/var/www/html/storage/app/public
+    - app-keys:/var/www/html/storage/keys
+  depends_on:
+    mysql:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+    rabbitmq:
+      condition: service_healthy
+
+services:
+  # Laravel REST API (PHP-FPM)
+  app:
+    <<: *laravel-app
+    environment:
+      <<: *laravel-env
+      RUN_MIGRATIONS: "true"
+    restart: unless-stopped
+
+  # Async consumer for the RabbitMQ "orders" and "notifications" queues
+  queue-worker:
+    <<: *laravel-app
+    environment:
+      <<: *laravel-env
+    command: php artisan queue:work rabbitmq --queue=orders,notifications,default --tries=3 --sleep=1
+    restart: unless-stopped
+
+  # Nginx origin in front of PHP-FPM
+  web:
+    build:
+      context: ./backend-laravel
+      target: web
+    image: picture-shop/web:latest
+    ports:
+      - "8000:80"
+    volumes:
+      - media:/var/www/html/storage/app/public:ro
+    depends_on:
+      - app
+    restart: unless-stopped
+
+  # Local CDN edge (pull-through cache for media)
+  cdn:
+    image: nginx:1.27-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./docker/cdn/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - cdn-cache:/var/cache/nginx/cdn
+    depends_on:
+      - web
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend-react
+      args:
+        VITE_API_URL: http://localhost:8000/api
+        VITE_STRIPE_PUBLISHABLE_KEY: ${VITE_STRIPE_PUBLISHABLE_KEY:-}
+    ports:
+      - "5173:80"
+    depends_on:
+      - web
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: picture_shop
+      MYSQL_USER: picture_shop
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    environment:
+      RABBITMQ_DEFAULT_USER: picture_shop
+      RABBITMQ_DEFAULT_PASS: secret
+    ports:
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 10s
+      retries: 20
+    restart: unless-stopped
+
+  # Catches outgoing notification e-mails (UI: http://localhost:8025)
+  mailpit:
+    image: axllent/mailpit:v1.21
+    ports:
+      - "8025:8025"
+    restart: unless-stopped
+
+volumes:
+  mysql-data:
+  redis-data:
+  rabbitmq-data:
+  media:
+  app-keys:
+  cdn-cache:

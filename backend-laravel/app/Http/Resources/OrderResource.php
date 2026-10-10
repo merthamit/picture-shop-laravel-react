@@ -16,9 +16,15 @@ class OrderResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'user' => $this->user,
-            'picture' => $this->picture,
+            'picture' => [
+                'id' => $this->picture->id,
+                'title' => $this->picture->title,
+                'price' => $this->picture->price,
+                'thumbnail_path' => $this->picture->thumbnail_path,
+                'is_deleted' => $this->picture->trashed(),
+            ],
             'total' => $this->total,
+            'status' => $this->status,
             'created_at' => $this->created_at->diffForHumans(),
         ];
     }

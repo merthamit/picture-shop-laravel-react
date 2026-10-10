@@ -8,6 +8,7 @@ import axios from "axios";
 import { clearCartItems } from "../redux/slices/cartSlice";
 import { setCurrentUser } from "../redux/slices/userSlice";
 import { toast } from "react-toastify";
+import { useT } from "../../i18n";
 
 export default function CheckoutForm() {
   const stripe = useStripe();
@@ -15,6 +16,8 @@ export default function CheckoutForm() {
 
   const [message, setMessage] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const t = useT();
+  const total = useSelector((state) => state.cart.cartItems).reduce((acc, item) => acc + Number(item.price), 0);
   const { cartItems } = useSelector((state) => state.cart);
   const { token, user } = useSelector((state) => state.user);
   const dispatch = useDispatch();
@@ -33,7 +36,7 @@ export default function CheckoutForm() {
       dispatch(clearCartItems());
       dispatch(setCurrentUser(response.data.user));
       setIsProcessing(false);
-      toast.success("Payment done successfully.");
+      toast.success(t("checkout.success"));
       navigate("/profile", {
         position: "top-right",
       });
@@ -41,7 +44,6 @@ export default function CheckoutForm() {
       setIsProcessing(false);
       console.log(error);
     }
-    fetchPictureById();
   };
 
   const handleSubmit = async (e) => {
@@ -81,7 +83,7 @@ export default function CheckoutForm() {
       <PaymentElement id="payment-element" />
       <button disabled={isProcessing || !stripe || !elements} id="submit">
         <span id="button-text">
-          {isProcessing ? "Processing ... " : "Pay now"}
+          {isProcessing ? t("checkout.processing") : t("checkout.pay", { amount: `$${total}` })}
         </span>
       </button>
       {/* Show any error or success messages */}

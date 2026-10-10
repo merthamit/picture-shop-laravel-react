@@ -1,70 +1,41 @@
 @extends('admin.layouts.app')
-@section('title', 'Login')
-
-@section('styles')
-    <style>
-        .bd-placeholder-img {
-            font-size: 1.125rem;
-            text-anchor: middle;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            user-select: none;
-        }
-
-        @media (min-width: 768px) {
-            .bd-placeholder-img-lg {
-                font-size: 3.5rem;
-            }
-        }
-    </style>
-@endsection
+@section('title', 'Sign in')
 
 @section('content')
-    <div class="container">
-        <div class="row my-5">
-            <div class="col-md-6 mx-auto">
-                <main class="text-center">
-                    <form action="{{ route('admin.auth') }}" method="POST">
-                        @csrf
-                        <img src="https://cdn.pixabay.com/photo/2016/12/20/05/36/store-1919731_1280.png" alt="Logo"
-                            class="mb-4 rounded" width="72" height="57">
-                        <h1 class="h3 mb-3 fw-normal">
-                            Please sign in
-                        </h1>
-                        <div class="form-floating mb-3">
-                            <input type="email" name="email" id="email"
-                                class="form-control @error('email') is-invalid @enderror">
-                            <label for="email">Email Address*</label>
-                            @error('email')
-                                <span class="invalid-feedback">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                            @enderror
-                        </div>
-                        <div class="form-floating mb-3">
-                            <input type="password" name="password" id="password"
-                                class="form-control @error('password') is-invalid @enderror">
-                            <label for="password">Password*</label>
-                            @error('password')
-                                <span class="invalid-feedback">
-                                    <strong>{{ $message }}</strong>
-                                </span>
-                            @enderror
-                        </div>
-                        <div class="checkbox mb-3">
-                            <label>
-                                <input type="checkbox" name="remember_me" value="1"> Remember me
-                            </label>
-                        </div>
-                        <button type="submit" class="w-100 btn btn-lg btn-primary">
-                            Sign in
-                        </button>
-                        <p class="mt-5 mb-3 text-muted">
-                            &copy; {{ \Carbon\Carbon::now()->year }}
-                        </p>
-                    </form>
-                </main>
+    <div class="login-wrap">
+        <div class="panel login-card">
+            <div class="text-center mb-4">
+                <span class="brand-logo"><i class="bi bi-shield-lock"></i></span>
+                <h1 class="h4 fw-bold mb-1">Admin sign in</h1>
+                <p class="text-muted mb-0">Manage the Picture Shop marketplace</p>
             </div>
+            @include('admin.layouts.alerts')
+            <form action="{{ route('admin.auth') }}" method="POST" novalidate>
+                @csrf
+                <div class="mb-3">
+                    <label for="email" class="form-label fw-semibold small">Email</label>
+                    <input type="email" name="email" id="email" value="{{ old('email') }}" autofocus
+                        class="form-control @error('email') is-invalid @enderror" placeholder="admin@example.com">
+                    @error('email')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label fw-semibold small">Password</label>
+                    <input type="password" name="password" id="password"
+                        class="form-control @error('password') is-invalid @enderror" placeholder="••••••••">
+                    @error('password')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="form-check mb-4">
+                    <input class="form-check-input" type="checkbox" name="remember_me" id="remember_me">
+                    <label class="form-check-label small" for="remember_me">Remember me</label>
+                </div>
+                <button class="btn btn-primary w-100 justify-content-center py-2" type="submit">
+                    <i class="bi bi-box-arrow-in-right"></i> Sign in
+                </button>
+            </form>
         </div>
     </div>
 @endsection

@@ -4,39 +4,62 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Jobs\ProcessOrder;
 use App\Models\Order;
-use App\Models\User;
+use App\Models\Picture;
+use App\Services\CartService;
 use ErrorException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Stripe\Exception\ApiErrorException;
 use Stripe\Stripe;
 
 class OrderController extends Controller
 {
-    public function store(Request $request)
+    public function store(Request $request, CartService $cart)
     {
-        $data = [];
-        $user = User::findOrFail($request->user_id);
+        $user = $request->user();
+        // Skip pictures the user already owns or bought
+        $pictures = $this->resolvePictures($request->pictures)
+            ->reject(fn ($picture) => $picture->isOwnedBy($user) || $picture->isPurchasedBy($user))
+            ->values();
 
-        foreach ($request->pictures as $picture) {
-            $data['user_id'] = $user->id;
-            $data['picture_id'] = $picture['id'];
-            $data['total'] = $this->calculateOrderTotal($request->pictures, $savingForDatabase = true);
-
-            Order::create($data);
-
+        if ($pictures->isEmpty()) {
+            return response()->json(['errors' => ['pictures' => [__('messages.nothing_to_order')]]], 422);
         }
+
+        $total = $this->calculateOrderTotal($pictures, $savingForDatabase = true);
+
+        // Persist the orders quickly, then hand the heavy lifting
+        // (status update, notifications) to the RabbitMQ worker.
+        $orderIds = DB::transaction(function () use ($pictures, $user, $total) {
+            return $pictures->map(fn ($picture) => Order::create([
+                'user_id' => $user->id,
+                'picture_id' => $picture->id,
+                'total' => $total,
+                'status' => Order::STATUS_PENDING,
+            ])->id)->all();
+        });
+
+        ProcessOrder::dispatch($orderIds)->afterCommit();
+        $cart->clear($user->id);
+
         return response()->json([
-            'user' => UserResource::make($request->user()),
+            'user' => UserResource::make($user),
         ]);
     }
     public function payByStripe(Request $request)
     {
-        Stripe::setApiKey('sk_test_51PtWxg06PAiJgxypKOOuuQufGET6DQvBTFDl0gqN1owSUgIeGd27BjHJyJygazpgFW63l7HAZEYuYQ7eyRMTGFzI00hMU9xPZ4');
+        if (!config('services.stripe.secret')) {
+            return response()->json(['error' => __('messages.payment_not_configured')], 503);
+        }
+
+        Stripe::setApiKey(config('services.stripe.secret'));
         try {
 
             // Create a PaymentIntent with amount and currency
             $paymentIntent = \Stripe\PaymentIntent::create([
-                'amount' => $this->calculateOrderTotal($request->cartItems, $savingForDatabase = false),
+                'amount' => $this->calculateOrderTotal($this->resolvePictures($request->cartItems), $savingForDatabase = false),
                 'currency' => 'usd',
                 'description' => 'React Store',
                 'setup_future_usage' => 'on_session',
@@ -47,17 +70,26 @@ class OrderController extends Controller
             ];
             return response()->json($output);
 
-        } catch (ErrorException $e) {
-            return response()->json(['error' => $e->getMessage()]);
+        } catch (ApiErrorException | ErrorException $e) {
+            report($e);
+            return response()->json(['error' => __('messages.payment_failed')], 502);
         }
+    }
+
+    /**
+     * Load the requested pictures from the database so prices
+     * can never be tampered with on the client.
+     */
+    private function resolvePictures($items)
+    {
+        $ids = collect($items)->pluck('id')->filter()->unique();
+
+        return Picture::whereIn('id', $ids)->where('status', 1)->get();
     }
 
     public function calculateOrderTotal($pictures, $savingForDatabase)
     {
-        $total = 0;
-        foreach ($pictures as $picture) {
-            $total += $picture['price'];
-        }
+        $total = $pictures->sum('price');
         return $savingForDatabase ? $total : $total * 100;
     }
 }

@@ -18,6 +18,6 @@ class AdminMiddleware
         if (auth()->guard('admin')->check()) {
             return $next($request);
         }
-        return redirect()->back();
+        return redirect()->route('admin.login');
     }
 }

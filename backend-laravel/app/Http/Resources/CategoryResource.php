@@ -17,6 +17,7 @@ class CategoryResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'pictures_count' => $this->whenCounted('pictures'),
         ];
     }
 }

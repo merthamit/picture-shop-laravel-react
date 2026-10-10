@@ -18,9 +18,26 @@ class UserResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'email' => $this->email,
+            'locale' => $this->locale,
+            'email_verified' => $this->hasVerifiedEmail(),
             'image_path' => $this->image_path,
-            'orders' => OrderResource::collection($this->orders()->latest()->get()),
-            'pictures' => PictureResource::collection($this->pictures()->latest()->get()),
+            'favorite_ids' => $this->favorites()->pluck('picture_id'),
+            'orders' => OrderResource::collection($this->orders()->with('picture')->latest()->get()),
+            'pictures' => $this->pictures()
+                ->with('category:id,name')
+                ->withCount('orders')
+                ->latest()
+                ->get()
+                ->map(fn ($picture) => [
+                    'id' => $picture->id,
+                    'title' => $picture->title,
+                    'price' => $picture->price,
+                    'status' => $picture->status,
+                    'category_id' => $picture->category_id,
+                    'category' => $picture->category?->only(['id', 'name']),
+                    'thumbnail_path' => $picture->thumbnail_path,
+                    'sales_count' => $picture->orders_count,
+                ]),
         ];
     }
 }

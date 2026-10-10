@@ -35,4 +35,20 @@ return [
         ],
     ],
 
+    'stripe' => [
+        'secret' => env('STRIPE_SECRET'),
+    ],
+
+    'cloudinary' => [
+        'url' => env('CLOUDINARY_URL'),
+    ],
+
+    'cdn' => [
+        'url' => env('CDN_URL'),
+    ],
+
+    'cart' => [
+        'ttl' => (int) env('CART_TTL', 60 * 60 * 24 * 7),
+    ],
+
 ];

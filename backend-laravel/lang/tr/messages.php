@@ -1,0 +1,26 @@
+<?php
+
+return [
+    'account_created' => 'Hesabınız oluşturuldu! Adresinizi doğrulamanız için size bir e-posta gönderdik.',
+    'invalid_credentials' => 'Bu bilgilerle eşleşen bir hesap bulunamadı.',
+    'logged_out' => 'Başarıyla çıkış yapıldı.',
+    'reset_link_sent' => 'Bu e-posta ile kayıtlı bir hesap varsa, şifre sıfırlama bağlantısı gönderildi.',
+    'password_reset' => 'Şifreniz sıfırlandı. Artık giriş yapabilirsiniz.',
+    'already_verified' => 'E-posta adresiniz zaten doğrulanmış.',
+    'verification_sent' => 'E-posta adresinize yeni bir doğrulama bağlantısı gönderildi.',
+    'picture_saved' => 'Fotoğraf başarıyla kaydedildi.',
+    'picture_updated' => 'Fotoğraf güncellendi.',
+    'picture_deleted' => 'Fotoğraf silindi.',
+    'download_forbidden' => 'Yalnızca satın aldığınız fotoğrafları indirebilirsiniz.',
+    'review_exists' => 'Bu fotoğrafı zaten değerlendirdiniz.',
+    'review_buyers_only' => 'Yalnızca satın aldığınız fotoğrafları değerlendirebilirsiniz.',
+    'review_added' => 'Teşekkürler! Yorumunuz onaylandıktan sonra görünecek.',
+    'review_updated' => 'Yorumunuz güncellendi ve onay bekliyor.',
+    'review_deleted' => 'Yorumunuz silindi.',
+    'something_wrong' => 'Bir şeyler ters gitti.',
+    'favorite_added' => 'Favorilerinize eklendi.',
+    'favorite_removed' => 'Favorilerinizden çıkarıldı.',
+    'nothing_to_order' => 'Sepetinizde sipariş edilecek yeni bir ürün yok.',
+    'payment_not_configured' => 'Ödeme sistemi henüz yapılandırılmadı (Stripe anahtarı eksik).',
+    'payment_failed' => 'Ödeme sağlayıcısına ulaşılamadı. Lütfen tekrar deneyin.',
+];

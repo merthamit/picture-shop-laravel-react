@@ -1,68 +1,72 @@
 @extends('admin.layouts.app')
-
-@section('title')
-    Users
-@endsection
+@section('title', 'Users')
+@section('subtitle', $users->total() . ' registered users')
 
 @section('content')
-    <div class="container-fluid">
-        <div class="row">
-            @include('admin.layouts.sidebar')
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-                <div class="row my-4">
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div
-                                class="card-header bg-white d-flex
-                                justify-content-between align-items-center">
-                                <h3 class="mt-2">
-                                    Users ({{ $users->count() }})
-                                </h3>
-                            </div>
-                            <div class="card-body">
-                                <table class="table table-responsive">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Name</th>
-                                            <th>Email</th>
-                                            <th>Pictures</th>
-                                            <th>Registred</th>
-                                            <th></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($users as $user)
-                                            <tr>
-                                                <td>{{ $user->id }}</td>
-                                                <td>{{ $user->name }}</td>
-                                                <td>{{ $user->email }}</td>
-                                                <td>
-                                                    {{ $user->pictures->count() }}
-                                                </td>
-                                                <td>
-                                                    {{ $user->created_at->diffForHumans() }}
-                                                </td>
-                                                <td>
-                                                    <a onclick="deleteItem({{ $user->id }})" href="#"
-                                                        class="btn btn-sm btn-danger">
-                                                        <i class="fas fa-trash"></i>
-                                                    </a>
-                                                    <form id="{{ $user->id }}"
-                                                        action="{{ route('admin.users.destroy', $user) }}" method="post">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                    </form>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </main>
+    <div class="panel">
+        <div class="panel-header">
+            <form class="filters" method="GET">
+                <input type="search" name="q" value="{{ request('q') }}" class="form-control form-control-sm"
+                    placeholder="Search name or e-mail">
+                <button class="btn btn-sm btn-light"><i class="bi bi-search"></i></button>
+            </form>
         </div>
+        <div class="table-responsive">
+            <table class="table table-admin">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>E-mail</th>
+                        <th>Language</th>
+                        <th>Pictures</th>
+                        <th>Purchases</th>
+                        <th>Joined</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($users as $user)
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="avatar">{{ strtoupper(substr($user->name, 0, 1)) }}</span>
+                                    <span class="fw-semibold">{{ $user->name }}</span>
+                                </div>
+                            </td>
+                            <td>
+                                {{ $user->email }}
+                                @if ($user->hasVerifiedEmail())
+                                    <i class="bi bi-patch-check-fill text-primary" title="Verified"></i>
+                                @else
+                                    <span class="pill pill-warning ms-1">Unverified</span>
+                                @endif
+                            </td>
+                            <td class="text-uppercase">{{ $user->locale }}</td>
+                            <td>{{ $user->pictures_count }}</td>
+                            <td>{{ $user->orders_count }}</td>
+                            <td class="text-muted small">{{ $user->created_at->format('d M Y') }}</td>
+                            <td class="text-end">
+                                <form action="{{ route('admin.users.destroy', $user) }}" method="post"
+                                    data-confirm="Delete {{ $user->name }} and all of their pictures?">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="btn btn-sm btn-icon btn-light text-danger" title="Delete"><i
+                                            class="bi bi-trash"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7">
+                                <div class="empty"><i class="bi bi-people"></i>No users found</div>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        @if ($users->hasPages())
+            <div class="panel-body border-top">{{ $users->links() }}</div>
+        @endif
     </div>
 @endsection

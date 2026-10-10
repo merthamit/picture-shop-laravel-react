@@ -1,48 +1,39 @@
-<nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
-    <div class="position-sticky pt-3">
-        <ul class="nav flex-column">
-            <li class="nav-item">
-                <a class="nav-link @if (request()->routeIs('admin.index')) active @endif" aria-current="page"
-                    href="{{ route('admin.index') }}">
-                    <i class="fas fa-dashboard"></i>
-                    Dashboard
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link @if (request()->routeIs('admin.categories.index')) active @endif" aria-current="page"
-                    href="{{ route('admin.categories.index') }}">
-                    <i class="fas fa-bars"></i>
-                    Categories
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link @if (request()->routeIs('admin.reviews.index')) active @endif" aria-current="page"
-                    href="{{ route('admin.reviews.index') }}">
-                    <i class="fas fa-star"></i>
-                    Reviews
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link @if (request()->routeIs('admin.pictures.index')) active @endif" aria-current="page"
-                    href="{{ route('admin.pictures.index') }}">
-                    <i class="fas fa-image"></i>
-                    Pictures
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link @if (request()->routeIs('admin.users.index')) active @endif" aria-current="page"
-                    href="{{ route('admin.users.index') }}">
-                    <i class="fas fa-users"></i>
-                    Users
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link @if (request()->routeIs('admin.orders.index')) active @endif" aria-current="page"
-                    href="{{ route('admin.orders.index') }}">
-                    <i class="fas fa-cart-shopping"></i>
-                    Orders
-                </a>
-            </li>
-        </ul>
+@php
+    $links = [
+        ['route' => 'admin.index', 'match' => 'admin.index', 'icon' => 'bi-grid-1x2', 'label' => 'Dashboard'],
+        ['route' => 'admin.orders.index', 'match' => 'admin.orders.*', 'icon' => 'bi-bag-check', 'label' => 'Orders'],
+        ['route' => 'admin.pictures.index', 'match' => 'admin.pictures.*', 'icon' => 'bi-images', 'label' => 'Pictures'],
+        ['route' => 'admin.categories.index', 'match' => 'admin.categories.*', 'icon' => 'bi-tags', 'label' => 'Categories'],
+        ['route' => 'admin.reviews.index', 'match' => 'admin.reviews.*', 'icon' => 'bi-star', 'label' => 'Reviews'],
+        ['route' => 'admin.users.index', 'match' => 'admin.users.*', 'icon' => 'bi-people', 'label' => 'Users'],
+    ];
+    $pending = \App\Models\Review::where('approved', 0)->count();
+@endphp
+<aside class="admin-sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="adminSidebar">
+    <div class="sidebar-brand">
+        <span class="brand-logo"><i class="bi bi-image"></i></span>
+        <div>
+            <div class="fw-bold">Picture Shop</div>
+            <small>Admin panel</small>
+        </div>
+        <button type="button" class="btn-close btn-close-white ms-auto d-lg-none" data-bs-dismiss="offcanvas"
+            data-bs-target="#adminSidebar" aria-label="Close"></button>
     </div>
-</nav>
+    <nav class="sidebar-nav">
+        @foreach ($links as $link)
+            <a href="{{ route($link['route']) }}"
+                class="sidebar-link {{ request()->routeIs($link['match']) ? 'active' : '' }}">
+                <i class="bi {{ $link['icon'] }}"></i>
+                {{ $link['label'] }}
+                @if ($link['label'] === 'Reviews' && $pending)
+                    <span class="badge rounded-pill bg-warning text-dark ms-auto">{{ $pending }}</span>
+                @endif
+            </a>
+        @endforeach
+    </nav>
+    <div class="sidebar-footer">
+        <a href="{{ config('app.frontend_url') }}" target="_blank" class="sidebar-link">
+            <i class="bi bi-box-arrow-up-right"></i> Open storefront
+        </a>
+    </div>
+</aside>

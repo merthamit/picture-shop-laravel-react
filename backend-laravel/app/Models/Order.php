@@ -7,7 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
-    protected $fillable = ['total', 'user_id', 'picture_id'];
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_COMPLETED = 'completed';
+    public const STATUS_FAILED = 'failed';
+
+    protected $fillable = ['total', 'user_id', 'picture_id', 'status'];
     use HasFactory;
 
     public function user()
@@ -15,8 +19,9 @@ class Order extends Model
         return $this->belongsTo(User::class);
     }
 
+    // Buyers keep access to pictures the seller removed from the shop
     public function picture()
     {
-        return $this->belongsTo(Picture::class);
+        return $this->belongsTo(Picture::class)->withTrashed();
     }
 }

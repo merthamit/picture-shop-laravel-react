@@ -3,6 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\AuthAdminRequest;
+use App\Models\Category;
+use App\Models\Order;
+use App\Models\Picture;
+use App\Models\Review;
+use App\Models\User;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class AdminController extends Controller
 {
@@ -10,7 +17,36 @@ class AdminController extends Controller
 
     public function index()
     {
-        return view('admin.dashboard');
+        $completed = Order::where('orders.status', Order::STATUS_COMPLETED);
+
+        $stats = [
+            'revenue' => (clone $completed)->join('pictures', 'pictures.id', '=', 'orders.picture_id')->sum('pictures.price'),
+            'orders' => Order::count(),
+            'users' => User::count(),
+            'pictures' => Picture::where('status', 1)->count(),
+            'pending_reviews' => Review::where('approved', 0)->count(),
+            'categories' => Category::count(),
+        ];
+
+        // Revenue of the last 14 days for the bar chart
+        $from = Carbon::today()->subDays(13);
+        $daily = Order::query()
+            ->join('pictures', 'pictures.id', '=', 'orders.picture_id')
+            ->where('orders.created_at', '>=', $from)
+            ->groupBy(DB::raw('DATE(orders.created_at)'))
+            ->selectRaw('DATE(orders.created_at) as day, SUM(pictures.price) as total, COUNT(*) as count')
+            ->pluck('total', 'day');
+
+        $chart = collect(range(0, 13))->map(function ($offset) use ($from, $daily) {
+            $day = $from->copy()->addDays($offset);
+            return ['label' => $day->format('d M'), 'total' => (int) ($daily[$day->toDateString()] ?? 0)];
+        });
+
+        $recentOrders = Order::with(['user:id,name', 'picture'])->latest()->take(6)->get();
+        $topPictures = Picture::withCount('orders')->with('user:id,name')
+            ->orderByDesc('orders_count')->take(5)->get();
+
+        return view('admin.dashboard', compact('stats', 'chart', 'recentOrders', 'topPictures'));
     }
 
     public function login()
@@ -23,22 +59,24 @@ class AdminController extends Controller
     }
     public function auth(AuthAdminRequest $request)
     {
-        if ($request->validated()) {
-            $remember_me = $request->has('remember_me') ? true : false;
-            if (auth()->guard('admin')->attempt([
-                'email' => $request->email,
-                'password' => $request->password,
-            ], $remember_me)) {
-                return redirect()->route('admin.index');
-            } else {
-                return redirect()->route('admin.login')->with(['error' => 'These credentials do not match!']);
-            }
+        $remember_me = $request->has('remember_me');
+        if (auth()->guard('admin')->attempt([
+            'email' => $request->email,
+            'password' => $request->password,
+        ], $remember_me)) {
+            $request->session()->regenerate();
+            return redirect()->route('admin.index');
         }
+
+        return redirect()->route('admin.login')->withInput($request->only('email'))
+            ->with(['error' => 'These credentials do not match!']);
     }
 
     public function logout()
     {
         auth()->guard('admin')->logout();
+        request()->session()->invalidate();
+        request()->session()->regenerateToken();
         return redirect()->route('admin.login');
     }
 }

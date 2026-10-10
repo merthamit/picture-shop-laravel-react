@@ -8,18 +8,16 @@ use App\Http\Controllers\Admin\ReviewController;
 use App\Http\Controllers\Admin\UserController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
 Route::get('/', [AdminController::class, 'login'])->name('admin.login');
-Route::post('/auth', [AdminController::class, 'auth'])->name('admin.auth');
+Route::post('/auth', [AdminController::class, 'auth'])->name('admin.auth')->middleware('throttle:10,1');
 
-Route::prefix('admin')->group(function () {
-    Route::middleware('admin')->group(function () {
-        Route::get('dashboard', [AdminController::class, 'index'])->name('admin.index');
-        Route::post('logout', [AdminController::class, 'logout'])->name('admin.logout');
-    });
+// Every admin page requires an authenticated admin
+Route::prefix('admin')->middleware('admin')->group(function () {
+    Route::get('dashboard', [AdminController::class, 'index'])->name('admin.index');
+    Route::post('logout', [AdminController::class, 'logout'])->name('admin.logout');
+
     Route::resource('categories', CategoryController::class, [
+        'except' => ['show'],
         'names' => [
             'index' => 'admin.categories.index',
             'create' => 'admin.categories.create',

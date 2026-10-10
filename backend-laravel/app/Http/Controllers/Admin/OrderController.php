@@ -4,18 +4,25 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
     /**
      * Display all the orders
      */
-    public function index()
+    public function index(Request $request)
     {
-        $orders = Order::latest()->get();
-        return view('admin.orders.index')->with([
-            'orders' => $orders,
-        ]);
+        $orders = Order::with(['user:id,name,email', 'picture'])
+            ->when($request->filled('status'), fn ($q) => $q->where('status', $request->status))
+            ->when($request->filled('q'), fn ($q) => $q->where(fn ($w) => $w
+                ->whereHas('user', fn ($u) => $u->where('name', 'like', '%' . $request->q . '%'))
+                ->orWhereHas('picture', fn ($p) => $p->withTrashed()->where('title', 'like', '%' . $request->q . '%'))))
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('admin.orders.index', compact('orders'));
     }
 
     /**
@@ -25,7 +32,7 @@ class OrderController extends Controller
     {
         $order->delete();
 
-        return redirect()->route('admin.orders.index')->with([
+        return back()->with([
             'success' => 'Order has been deleted successfully',
         ]);
     }

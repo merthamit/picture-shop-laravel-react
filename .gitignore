@@ -1,0 +1,13 @@
+# Secrets (Stripe, Cloudinary)
+.env
+
+# Dependencies / build output
+node_modules/
+vendor/
+dist/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

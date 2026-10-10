@@ -1,97 +1,84 @@
 @extends('admin.layouts.app')
-
-@section('title')
-    Reviews
-@endsection
+@section('title', 'Reviews')
+@section('subtitle', $pendingCount . ' waiting for approval')
 
 @section('content')
-    <div class="container-fluid">
-        <div class="row">
-            @include('admin.layouts.sidebar')
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-                <div class="row my-4">
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div
-                                class="card-header bg-white d-flex
-                                justify-content-between align-items-center">
-                                <h3 class="mt-2">
-                                    Reviews ({{ $reviews->count() }})
-                                </h3>
-                            </div>
-                            <div class="card-body">
-                                <table class="table table-responsive">
-                                    <thead>
-                                        <tr>
-                                            <th>ID</th>
-                                            <th>Comment</th>
-                                            <th>Rating</th>
-                                            <th>Approved</th>
-                                            <th>By</th>
-                                            <th>Picture</th>
-                                            <th>Added</th>
-                                            <th></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($reviews as $review)
-                                            <tr>
-                                                <td>{{ $review->id }}</td>
-                                                <td>{{ $review->comment }}</td>
-                                                <td>{{ $review->rating }}</td>
-                                                <td>
-                                                    @if ($review->approved)
-                                                        <span class="badge bg-success">
-                                                            Yes
-                                                        </span>
-                                                    @else
-                                                        <span class="badge bg-danger">
-                                                            No
-                                                        </span>
-                                                    @endif
-                                                </td>
-                                                <td>
-                                                    {{ $review->user->name }}
-                                                </td>
-                                                <td>
-                                                    <img src="{{ $review->picture->image_path }}" alt={{ $review->title }}
-                                                        class="rounded" width="60" height="60" />
-                                                </td>
-                                                <td>
-                                                    {{ $review->created_at }}
-                                                </td>
-                                                <td>
-                                                    @if ($review->approved)
-                                                        <a href="{{ route('admin.reviews.edit', ['review' => $review, 'status' => 0]) }}"
-                                                            class="btn btn-sm btn-warning">
-                                                            <i class="fas fa-eye-slash"></i>
-                                                        </a>
-                                                    @else
-                                                        <a href="{{ route('admin.reviews.edit', ['review' => $review, 'status' => 1]) }}"
-                                                            class="btn btn-sm btn-success">
-                                                            <i class="fas fa-check-double"></i>
-                                                        </a>
-                                                    @endif
-                                                    <a onclick="deleteItem({{ $review->id }})" href="#"
-                                                        class="btn btn-sm btn-danger">
-                                                        <i class="fas fa-trash"></i>
-                                                    </a>
-                                                    <form id="{{ $review->id }}"
-                                                        action="{{ route('admin.reviews.destroy', $review) }}"
-                                                        method="post">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                    </form>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </main>
+    <div class="panel">
+        <div class="panel-header">
+            <div class="btn-group btn-group-sm">
+                @foreach (['' => 'All', 'pending' => 'Pending', 'approved' => 'Approved'] as $value => $label)
+                    <a href="{{ route('admin.reviews.index', array_filter(['status' => $value])) }}"
+                        class="btn {{ request('status', '') === $value ? 'btn-primary' : 'btn-light' }}">{{ $label }}</a>
+                @endforeach
+            </div>
         </div>
+        <div class="table-responsive">
+            <table class="table table-admin">
+                <thead>
+                    <tr>
+                        <th>Picture</th>
+                        <th>Review</th>
+                        <th>By</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($reviews as $review)
+                        <tr>
+                            <td>
+                                <img src="{{ $review->picture?->thumbnail_path }}" alt="" class="thumb">
+                            </td>
+                            <td style="max-width: 420px">
+                                <div class="stars small mb-1">
+                                    @for ($i = 1; $i <= 5; $i++)
+                                        <i class="bi {{ $i <= $review->rating ? 'bi-star-fill' : 'bi-star' }}"></i>
+                                    @endfor
+                                </div>
+                                <div>{{ $review->comment }}</div>
+                            </td>
+                            <td>
+                                <div class="fw-semibold">{{ $review->user?->name }}</div>
+                                <small class="text-muted">{{ $review->created_at }}</small>
+                            </td>
+                            <td>
+                                @if ($review->approved)
+                                    <span class="pill pill-success">Approved</span>
+                                @else
+                                    <span class="pill pill-warning">Pending</span>
+                                @endif
+                            </td>
+                            <td class="text-end">
+                                <div class="d-inline-flex gap-1">
+                                    @if ($review->approved)
+                                        <a href="{{ route('admin.reviews.edit', ['review' => $review, 'status' => 0]) }}"
+                                            class="btn btn-sm btn-light"><i class="bi bi-eye-slash"></i> Hide</a>
+                                    @else
+                                        <a href="{{ route('admin.reviews.edit', ['review' => $review, 'status' => 1]) }}"
+                                            class="btn btn-sm btn-primary"><i class="bi bi-check2"></i> Approve</a>
+                                    @endif
+                                    <form action="{{ route('admin.reviews.destroy', $review) }}" method="post"
+                                        data-confirm="Delete this review?">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="btn btn-sm btn-icon btn-light text-danger" title="Delete"><i
+                                                class="bi bi-trash"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5">
+                                <div class="empty"><i class="bi bi-star"></i>No reviews found</div>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        @if ($reviews->hasPages())
+            <div class="panel-body border-top">{{ $reviews->links() }}</div>
+        @endif
     </div>
 @endsection

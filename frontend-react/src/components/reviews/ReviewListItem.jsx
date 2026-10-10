@@ -2,61 +2,52 @@ import React, { useContext } from "react";
 import { useSelector } from "react-redux";
 import { ReviewContext } from "./context/reviewContext";
 import { Rating } from "react-simple-star-rating";
+import Avatar from "../layouts/Avatar";
+import { useT } from "../../i18n";
 
 const ReviewListItem = ({ review }) => {
   const { user } = useSelector((state) => state.user);
   const { editReview, deleteReview } = useContext(ReviewContext);
+  const t = useT();
 
   const renderReviewActions = () =>
     review?.user_id === user?.id && (
       <div className="dropdown ms-auto">
-        <i className="bi bi-three-dots-vertical" data-bs-toggle="dropdown"></i>
-        <ul className="dropdown-menu">
+        <button
+          className="btn btn-sm btn-icon btn-ghost border-0"
+          data-bs-toggle="dropdown"
+          aria-label={t("reviews.actions")}
+        >
+          <i className="bi bi-three-dots-vertical"></i>
+        </button>
+        <ul className="dropdown-menu dropdown-menu-end">
           <li>
-            <span
-              className="dropdown-item"
-              style={{ cursor: "pointer" }}
-              onClick={() => editReview(review)}
-            >
-              <i className="bi bi-pen mx-2"></i> Update
-            </span>
+            <button className="dropdown-item" onClick={() => editReview(review)}>
+              <i className="bi bi-pencil"></i> {t("common.edit")}
+            </button>
           </li>
           <li>
-            <span
-              className="dropdown-item"
-              style={{ cursor: "pointer" }}
-              onClick={() => deleteReview(review)}
-            >
-              <i className="bi bi-trash mx-2"></i> Delete
-            </span>
+            <button className="dropdown-item text-danger" onClick={() => deleteReview(review)}>
+              <i className="bi bi-trash"></i> {t("common.delete")}
+            </button>
           </li>
         </ul>
       </div>
     );
 
   return (
-    <li className="list-group-item bg-light d-flex justify-content-start align-items-center">
-      <div className="me-2">
-        <img
-          src={review?.user?.image_path}
-          alt="user image"
-          className="rounded-circle"
-          width={60}
-          height={60}
-        />
-      </div>
-      <div className="d-flex flex-column">
-        <p className="m-0">
-          <i>{review?.comment}</i>
-        </p>
-        <Rating initialValue={review?.rating} readonly size={24} />
-        <span className="text-muted">
-          {review?.created_at} by{" "}
-          <span className="fw-bold">{review?.user?.name}</span>
-        </span>
+    <div className="review-item">
+      <Avatar user={review?.user} />
+      <div className="flex-grow-1">
+        <div className="d-flex align-items-center gap-2 flex-wrap">
+          <span className="fw-semibold text-ink">{review?.user?.name}</span>
+          <Rating initialValue={review?.rating} readonly size={16} />
+          <span className="small text-muted">{review?.created_at}</span>
+        </div>
+        <p>{review?.comment}</p>
       </div>
       {renderReviewActions()}
-    </li>
+    </div>
   );
 };
 

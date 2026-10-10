@@ -54,6 +54,11 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
+    // React storefront (used in e-mail links)
+    'frontend_url' => env('FRONTEND_URL', 'http://localhost:5173'),
+
+    'supported_locales' => ['en', 'tr'],
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone

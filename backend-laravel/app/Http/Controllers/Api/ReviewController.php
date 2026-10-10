@@ -7,44 +7,66 @@ use App\Models\Order;
 use App\Models\Review;
 use Illuminate\Http\Request;
 
+/**
+ * Reviews always belong to the authenticated user; the user_id sent by
+ * the client is ignored so nobody can write or delete in someone's name.
+ */
 class ReviewController extends Controller
 {
+    private function rules(): array
+    {
+        return [
+            'picture_id' => 'required|integer|exists:pictures,id',
+            'rating' => 'required|integer|min:1|max:5',
+            'comment' => 'required|string|max:2000',
+        ];
+    }
+
     public function store(Request $request)
     {
+        $request->validate($this->rules());
+        $userId = $request->user()->id;
+
         $review = Review::where([
             'picture_id' => $request->picture_id,
-            'user_id' => $request->user_id,
+            'user_id' => $userId,
         ])->first();
 
         $order = Order::where([
             'picture_id' => $request->picture_id,
-            'user_id' => $request->user_id,
+            'user_id' => $userId,
         ])->first();
 
         if ($review) {
             return response()->json([
-                'error' => 'You have already review this picture.',
+                'error' => __('messages.review_exists'),
             ]);
         }
 
         if (!$order) {
             return response()->json([
-                'error' => 'You can review only the pictures that you bought.',
+                'error' => __('messages.review_buyers_only'),
             ]);
         }
 
-        $data = $request->all();
-        Review::create($data);
+        Review::create([
+            'picture_id' => $request->picture_id,
+            'user_id' => $userId,
+            'rating' => $request->rating,
+            'comment' => $request->comment,
+        ]);
         return response()->json([
-            'message' => 'Your review has been added.',
+            'message' => __('messages.review_added'),
         ]);
     }
 
     public function updateReview(Request $request)
     {
+        $request->validate($this->rules());
+
         $review = Review::where([
             'picture_id' => $request->picture_id,
-            'user_id' => $request->user_id,
+            'user_id' => $request->user()->id,
         ])->first();
 
         if ($review) {
@@ -55,11 +77,11 @@ class ReviewController extends Controller
             ]);
 
             return response()->json([
-                'message' => 'Your review has been updated.',
+                'message' => __('messages.review_updated'),
             ]);
         }
         return response()->json([
-            'error' => 'Something went wrong.',
+            'error' => __('messages.something_wrong'),
         ]);
     }
 
@@ -67,17 +89,17 @@ class ReviewController extends Controller
     {
         $review = Review::where([
             'picture_id' => $request->picture_id,
-            'user_id' => $request->user_id,
+            'user_id' => $request->user()->id,
         ])->first();
 
         if ($review) {
             $review->delete();
             return response()->json([
-                'message' => 'Your review has been deleted.',
+                'message' => __('messages.review_deleted'),
             ]);
         }
         return response()->json([
-            'error' => 'Something went wrong.',
+            'error' => __('messages.something_wrong'),
         ]);
     }
 }

@@ -14,17 +14,32 @@ class PictureResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $viewer = $request->user('sanctum');
+
         return [
             'id' => $this->id,
             'title' => $this->title,
             'price' => $this->price,
-            'user' => $this->user->load('pictures'),
-            'category' => $this->category,
+            'user' => [
+                'id' => $this->user->id,
+                'name' => $this->user->name,
+                'pictures_count' => $this->user->pictures()->where('status', 1)->count(),
+            ],
+            'category' => $this->category?->only(['id', 'name']),
+            'category_id' => $this->category_id,
             'image_path' => $this->image_path,
-            'ext' => $this->ext,
+            'thumbnail_path' => $this->thumbnail_path,
+            'ext' => strtolower($this->ext),
+            'width' => $this->width,
+            'height' => $this->height,
             'status' => $this->status,
-            'orders' => $this->orders()->latest()->get(),
-            'reviews' => $this->reviews()->with('user')->where('approved', 1)->latest()->get(),
+            'is_deleted' => $this->trashed(),
+            'sales_count' => $this->orders()->count(),
+            'favorites_count' => $this->favorites()->count(),
+            'is_owner' => $this->isOwnedBy($viewer),
+            'is_purchased' => $this->isPurchasedBy($viewer),
+            'reviews' => $this->reviews()->with('user:id,name')->where('approved', 1)->latest()->get(),
+            'created_at' => $this->created_at?->toIso8601String(),
         ];
     }
 }

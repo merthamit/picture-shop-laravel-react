@@ -4,15 +4,21 @@ import { Elements } from "@stripe/react-stripe-js";
 import axios from "axios";
 import { BASE_URL, getConfig } from "../../helpers/config";
 import { useSelector } from "react-redux";
-import CheckoutForm from "./CheckOutForm";
+import CheckoutForm from "./CheckoutForm";
+import Spinner from "../layouts/Spinner";
+import { useT } from "../../i18n";
+
+const stripePromise = loadStripe(
+  import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY ||
+    "pk_test_51PtWxg06PAiJgxypTXDSJH8vg4qM38YFyp7hOXObPCb6QdkclUpuPtduDXrlF0qw5vfq2WFZYTeXW475CNPGnXNs00Bng3oyL1"
+);
 
 export default function Stripe() {
-  const stripePromise = loadStripe(
-    "pk_test_51PtWxg06PAiJgxypTXDSJH8vg4qM38YFyp7hOXObPCb6QdkclUpuPtduDXrlF0qw5vfq2WFZYTeXW475CNPGnXNs00Bng3oyL1"
-  );
   const [clientSecret, setClientSecret] = useState("");
+  const [error, setError] = useState("");
   const { cartItems } = useSelector((state) => state.cart);
   const { token } = useSelector((state) => state.user);
+  const t = useT();
 
   useEffect(() => {
     fetchClientSecret();
@@ -27,19 +33,48 @@ export default function Stripe() {
         },
         getConfig(token)
       );
-      setClientSecret(response.data.clientSecret);
+      if (response.data.clientSecret) setClientSecret(response.data.clientSecret);
+      else setError(response.data.error || t("checkout.initFailed"));
     } catch (error) {
+      // 403 = e-mail not verified, 503 = Stripe key missing, 502 = Stripe error
+      const status = error?.response?.status;
+      setError(
+        status === 403 ? t("checkout.verifyFirst") : error?.response?.data?.error || t("checkout.initFailed")
+      );
       console.log(error);
     }
   };
 
+  if (error) {
+    return (
+      <div className="alert alert-danger d-flex align-items-center gap-2 m-0">
+        <i className="bi bi-exclamation-triangle"></i> {error}
+      </div>
+    );
+  }
+
+  if (!clientSecret) return <Spinner />;
+
   return (
-    <>
-      {stripePromise && clientSecret && (
-        <Elements stripe={stripePromise} options={{ clientSecret }}>
-          <CheckoutForm />
-        </Elements>
-      )}
-    </>
+    <Elements
+      stripe={stripePromise}
+      options={{
+        clientSecret,
+        locale: t.lang,
+        appearance: {
+          theme: "stripe",
+          variables: {
+            colorPrimary: "#6d5dfc",
+            borderRadius: "12px",
+            fontFamily: "Plus Jakarta Sans, system-ui, sans-serif",
+          },
+        },
+      }}
+    >
+      <div className="alert alert-info small d-flex gap-2 align-items-start">
+        <i className="bi bi-info-circle mt-1"></i> {t("checkout.testCard")}
+      </div>
+      <CheckoutForm />
+    </Elements>
   );
 }

@@ -44,16 +44,14 @@ const Reviews = ({ picture, setLoading }) => {
       clearReview();
 
       if (!response.data.error) {
-        toast.success(response.data.message, {
-          position: "top-right",
-        });
+        toast.success(response.data.message);
       } else {
-        toast.error(response.data.error, {
-          position: "top-right",
-        });
+        toast.error(response.data.error);
       }
     } catch (error) {
-      console.log(error);
+      setLoading(false);
+      const errors = error?.response?.data?.errors;
+      toast.error(errors ? Object.values(errors)[0][0] : error?.response?.data?.message || error.message);
     }
   };
 
@@ -82,16 +80,14 @@ const Reviews = ({ picture, setLoading }) => {
         picture.reviews = picture.reviews.filter(
           (item) => item.id !== review.id
         );
-        toast.success(response.data.message, {
-          position: "top-right",
-        });
+        toast.success(response.data.message);
       } else {
-        toast.error(response.data.error, {
-          position: "top-right",
-        });
+        toast.error(response.data.error);
       }
     } catch (error) {
-      console.log(error);
+      setLoading(false);
+      const errors = error?.response?.data?.errors;
+      toast.error(errors ? Object.values(errors)[0][0] : error?.response?.data?.message || error.message);
     }
   };
 
@@ -110,16 +106,14 @@ const Reviews = ({ picture, setLoading }) => {
 
       if (!response.data.error) {
         picture.reviews = picture.reviews.filter((item) => item.id !== data.id);
-        toast.success(response.data.message, {
-          position: "top-right",
-        });
+        toast.success(response.data.message);
       } else {
-        toast.error(response.data.error, {
-          position: "top-right",
-        });
+        toast.error(response.data.error);
       }
     } catch (error) {
-      console.log(error);
+      setLoading(false);
+      const errors = error?.response?.data?.errors;
+      toast.error(errors ? Object.values(errors)[0][0] : error?.response?.data?.message || error.message);
     }
   };
 

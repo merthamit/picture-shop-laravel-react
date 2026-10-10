@@ -1,0 +1,26 @@
+<?php
+
+return [
+    'account_created' => 'Account created! We sent you an e-mail to verify your address.',
+    'invalid_credentials' => 'These credentials do not match any of our records.',
+    'logged_out' => 'Logged out successfully.',
+    'reset_link_sent' => 'If an account exists for this e-mail, a password reset link is on its way.',
+    'password_reset' => 'Your password has been reset. You can now log in.',
+    'already_verified' => 'Your e-mail address is already verified.',
+    'verification_sent' => 'A new verification link has been sent to your e-mail address.',
+    'picture_saved' => 'Picture has been saved successfully.',
+    'picture_updated' => 'Picture has been updated.',
+    'picture_deleted' => 'Picture has been deleted.',
+    'download_forbidden' => 'You can only download pictures you bought.',
+    'review_exists' => 'You have already reviewed this picture.',
+    'review_buyers_only' => 'You can review only the pictures that you bought.',
+    'review_added' => 'Thanks! Your review will be visible after approval.',
+    'review_updated' => 'Your review has been updated and is awaiting approval.',
+    'review_deleted' => 'Your review has been deleted.',
+    'something_wrong' => 'Something went wrong.',
+    'favorite_added' => 'Added to your favorites.',
+    'favorite_removed' => 'Removed from your favorites.',
+    'nothing_to_order' => 'There is nothing new to order in your cart.',
+    'payment_not_configured' => 'Payments are not configured yet (missing Stripe key).',
+    'payment_failed' => 'The payment provider could not be reached. Please try again.',
+];

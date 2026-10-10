@@ -1,57 +1,53 @@
 @extends('admin.layouts.app')
 @section('title', 'Categories')
+@section('subtitle', $categories->count() . ' categories')
+
+@section('actions')
+    <a href="{{ route('admin.categories.create') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus-lg"></i> New
+        category</a>
+@endsection
+
 @section('content')
-    <div class="container-fluid">
-        <div class="row">
-            @include('admin.layouts.sidebar')
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-                <div class="row my-4">
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-header bg-white justify-content-between align-items-center d-flex">
-                                <h3 class="mt-2">Categories ({{ $categories->count() }})</h3>
-                                <a href="{{ route('admin.categories.create') }}" class="btn btn-sm btn-primary">
-                                    <i class="fas fa-plus"></i></a>
-                            </div>
-                            <div class="card-body">
-                                <table class="table table-responsive">
-                                    <thead>
-                                        <tr>
-                                            <th>Id</th>
-                                            <th>Name</th>
-                                            <th></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($categories as $category)
-                                            <tr>
-                                                <td>{{ $category->id }}</td>
-                                                <td>{{ $category->name }}</td>
-                                                <td>
-                                                    <a href="{{ route('admin.categories.edit', $category) }}"
-                                                        class="btn btn-sm btn-warning">
-                                                        <i class="fas fa-edit"></i>
-                                                    </a>
-                                                    <a onclick="deleteItem({{ $category->id }})" href="#"
-                                                        class="btn btn-sm btn-danger">
-                                                        <i class="fas fa-trash"></i>
-                                                    </a>
-                                                    <form id="{{ $category->id }}"
-                                                        action="{{ route('admin.categories.destroy', $category) }}"
-                                                        method="post">
-                                                        @csrf
-                                                        @method('DELETE')
-                                                    </form>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </main>
+    <div class="panel">
+        <div class="table-responsive">
+            <table class="table table-admin">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Pictures</th>
+                        <th>Created</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($categories as $category)
+                        <tr>
+                            <td class="fw-semibold">{{ $category->name }}</td>
+                            <td>{{ $category->pictures_count }}</td>
+                            <td class="text-muted small">{{ $category->created_at->format('d M Y') }}</td>
+                            <td class="text-end">
+                                <div class="d-inline-flex gap-1">
+                                    <a href="{{ route('admin.categories.edit', $category) }}"
+                                        class="btn btn-sm btn-icon btn-light" title="Edit"><i class="bi bi-pencil"></i></a>
+                                    <form action="{{ route('admin.categories.destroy', $category) }}" method="post"
+                                        data-confirm="Delete {{ $category->name }}? Its {{ $category->pictures_count }} picture(s) will be deleted too.">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="btn btn-sm btn-icon btn-light text-danger" title="Delete"><i
+                                                class="bi bi-trash"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="4">
+                                <div class="empty"><i class="bi bi-tags"></i>No categories yet</div>
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 @endsection
