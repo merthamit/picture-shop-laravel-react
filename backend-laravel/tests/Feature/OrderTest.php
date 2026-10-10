@@ -72,6 +72,22 @@ class OrderTest extends TestCase
         Notification::assertSentTo($picture->user, PictureSold::class);
     }
 
+    public function test_payment_never_charges_for_pictures_already_owned(): void
+    {
+        $buyer = User::factory()->create();
+        $bought = Picture::factory()->create(['price' => 30]);
+        $new = Picture::factory()->create(['price' => 12]);
+        Order::factory()->for($buyer)->for($bought)->create();
+
+        $total = (new \App\Http\Controllers\Api\OrderController)->calculateOrderTotal(
+            (fn () => $this->purchasablePictures([['id' => $bought->id], ['id' => $new->id]], $buyer))
+                ->call(new \App\Http\Controllers\Api\OrderController),
+            false
+        );
+
+        $this->assertSame(1200, $total);
+    }
+
     public function test_payment_reports_a_missing_stripe_key(): void
     {
         $this->actingAs(User::factory()->create(), 'sanctum')

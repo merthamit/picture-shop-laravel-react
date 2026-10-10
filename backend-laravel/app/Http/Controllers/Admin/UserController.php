@@ -32,7 +32,7 @@ class UserController extends Controller
         $user->delete();
 
         return back()->with([
-            'success' => 'User has been deleted successfully',
+            'success' => __('admin.flash.user_deleted'),
         ]);
     }
 }

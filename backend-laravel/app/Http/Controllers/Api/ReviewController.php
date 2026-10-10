@@ -54,6 +54,8 @@ class ReviewController extends Controller
             'user_id' => $userId,
             'rating' => $request->rating,
             'comment' => $request->comment,
+            // Published right away; admins can still hide it from the panel
+            'approved' => 1,
         ]);
         return response()->json([
             'message' => __('messages.review_added'),
@@ -73,7 +75,6 @@ class ReviewController extends Controller
             $review->update([
                 'comment' => $request->comment,
                 'rating' => $request->rating,
-                'approved' => 0,
             ]);
 
             return response()->json([

@@ -5,9 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { BASE_URL, getConfig } from "../../helpers/config";
 import axios from "axios";
-import { clearCartItems } from "../redux/slices/cartSlice";
 import { setCurrentUser } from "../redux/slices/userSlice";
-import { toast } from "react-toastify";
 import { useT } from "../../i18n";
 
 export default function CheckoutForm() {
@@ -17,32 +15,31 @@ export default function CheckoutForm() {
   const [message, setMessage] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const t = useT();
-  const total = useSelector((state) => state.cart.cartItems).reduce((acc, item) => acc + Number(item.price), 0);
   const { cartItems } = useSelector((state) => state.cart);
-  const { token, user } = useSelector((state) => state.user);
+  const { token } = useSelector((state) => state.user);
+  const total = cartItems.reduce((acc, item) => acc + Number(item.price), 0);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const placeOrder = async () => {
+  const placeOrder = async (paymentIntent) => {
     try {
-      const response = await axios.post(
-        `${BASE_URL}/store/order`,
-        {
-          pictures: cartItems,
-          user_id: user?.id,
-        },
-        getConfig(token)
-      );
-      dispatch(clearCartItems());
+      const response = await axios.post(`${BASE_URL}/store/order`, { pictures: cartItems }, getConfig(token));
       dispatch(setCurrentUser(response.data.user));
-      setIsProcessing(false);
-      toast.success(t("checkout.success"));
-      navigate("/profile", {
-        position: "top-right",
+      // Hand the receipt to the success page (it empties the cart once it is shown,
+      // otherwise the checkout page would see an empty cart and bounce to /cart)
+      navigate("/checkout/success", {
+        replace: true,
+        state: {
+          items: cartItems,
+          total,
+          paymentId: paymentIntent.id,
+          paidAt: new Date().toISOString(),
+        },
       });
     } catch (error) {
+      const errors = error?.response?.data?.errors;
+      setMessage(errors ? Object.values(errors)[0][0] : t("common.somethingWrong"));
       setIsProcessing(false);
-      console.log(error);
     }
   };
 
@@ -51,31 +48,26 @@ export default function CheckoutForm() {
 
     if (!stripe || !elements) {
       // Stripe.js has not yet loaded.
-      // Make sure to disable form submission until Stripe.js has loaded.
       return;
     }
 
+    setMessage(null);
     setIsProcessing(true);
 
-    const response = await stripe.confirmPayment({
+    const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
-      confirmParams: {
-        // Make sure to change this to your payment completion page
-      },
       redirect: "if_required",
     });
 
-    if (
-      (response.error && response.error.type === "card_error") ||
-      (response.error && response.error.type === "validation_error")
-    ) {
-      setMessage(response.error.message);
-    } else if (response.paymentIntent.id) {
-      //display success message or redirect user
-      placeOrder();
+    if (error) {
+      setMessage(error.message);
+      setIsProcessing(false);
+    } else if (paymentIntent?.status === "succeeded") {
+      await placeOrder(paymentIntent);
+    } else {
+      setMessage(t("checkout.initFailed"));
+      setIsProcessing(false);
     }
-
-    setIsProcessing(false);
   };
 
   return (
@@ -83,10 +75,20 @@ export default function CheckoutForm() {
       <PaymentElement id="payment-element" />
       <button disabled={isProcessing || !stripe || !elements} id="submit">
         <span id="button-text">
-          {isProcessing ? t("checkout.processing") : t("checkout.pay", { amount: `$${total}` })}
+          {isProcessing ? (
+            <>
+              <span className="spinner-border spinner-border-sm me-2"></span>
+              {t("checkout.processing")}
+            </>
+          ) : (
+            <>
+              <i className="bi bi-lock-fill me-2"></i>
+              {t("checkout.pay", { amount: `$${total}` })}
+            </>
+          )}
         </span>
       </button>
-      {/* Show any error or success messages */}
+      {/* Show any error messages */}
       {message && <div id="payment-message">{message}</div>}
     </form>
   );

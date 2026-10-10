@@ -9,7 +9,7 @@ import {
 import { BASE_URL, getConfig } from "../../helpers/config";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { clearCartItems } from "../redux/slices/cartSlice";
+import { clearCartItems, pruneOwnedItems } from "../redux/slices/cartSlice";
 import Avatar from "./Avatar";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useT } from "../../i18n";
@@ -35,6 +35,7 @@ export default function Header() {
       try {
         const response = await axios.get(`${BASE_URL}/user`, getConfig(token));
         dispatch(setCurrentUser(response.data.user));
+        dispatch(pruneOwnedItems(response.data.user));
       } catch (error) {
         if (error?.response?.status == 401) {
           dispatch(setLoggedInOut(false));

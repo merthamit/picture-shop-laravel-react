@@ -14,7 +14,7 @@ class ReviewAndAdminTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_reviews_always_belong_to_the_authenticated_user(): void
+    public function test_reviews_are_published_immediately_for_the_authenticated_user(): void
     {
         $order = Order::factory()->create();
         $victim = User::factory()->create();
@@ -28,7 +28,8 @@ class ReviewAndAdminTest extends TestCase
             ])
             ->assertOk();
 
-        $this->assertDatabaseHas('reviews', ['user_id' => $order->user_id, 'picture_id' => $order->picture_id, 'approved' => 0]);
+        $this->assertDatabaseHas('reviews', ['user_id' => $order->user_id, 'picture_id' => $order->picture_id, 'approved' => 1]);
+        $this->getJson("/api/pictures/{$order->picture_id}")->assertJsonCount(1, 'data.reviews');
         $this->assertDatabaseMissing('reviews', ['user_id' => $victim->id]);
     }
 
@@ -58,6 +59,17 @@ class ReviewAndAdminTest extends TestCase
         foreach (['/admin/dashboard', '/admin/users', '/admin/orders', '/admin/pictures', '/admin/reviews', '/admin/categories'] as $url) {
             $this->get($url)->assertRedirect(route('admin.login'));
         }
+    }
+
+    public function test_the_admin_panel_can_be_switched_to_turkish(): void
+    {
+        $this->actingAs(Admin::factory()->create(), 'admin');
+
+        $this->get('/admin/dashboard')->assertSee('Dashboard');
+        $this->from('/admin/dashboard')->get('/locale/tr')->assertRedirect('/admin/dashboard');
+        $this->get('/admin/dashboard')->assertSee('Genel bakış')->assertSee('Son siparişler');
+        $this->get('/locale/de');
+        $this->get('/admin/dashboard')->assertSee('Genel bakış');
     }
 
     public function test_admins_can_manage_the_marketplace(): void

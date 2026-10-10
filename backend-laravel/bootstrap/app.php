@@ -18,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->api(prepend: [
             \App\Http\Middleware\SetLocale::class,
         ]);
+        $middleware->web(append: [
+            \App\Http\Middleware\SetAdminLocale::class,
+        ]);
         // Unauthenticated admin pages go to the admin login form
         $middleware->redirectGuestsTo(fn () => route('admin.login'));
     })

@@ -42,7 +42,7 @@ class PictureController extends Controller
         ]);
 
         return back()->with([
-            'success' => 'Picture has been updated successfully',
+            'success' => __('admin.flash.picture_updated'),
         ]);
     }
 }

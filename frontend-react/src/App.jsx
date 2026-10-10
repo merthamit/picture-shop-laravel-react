@@ -15,6 +15,7 @@ import Favorites from "./components/favorites/Favorites";
 import Picture from "./components/pictures/Picture";
 import Cart from "./components/cart/Cart";
 import Checkout from "./components/checkout/Checkout";
+import CheckoutSuccess from "./components/checkout/CheckoutSuccess";
 import PageNotFound from "./components/404/PageNotFound";
 import { applyLanguage, useLang } from "./i18n";
 
@@ -52,6 +53,7 @@ function App() {
           <Route path="/picture/:id" element={<Picture />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/checkout/success" element={<CheckoutSuccess />} />
           <Route path="*" element={<PageNotFound />} />
         </Routes>
       </main>

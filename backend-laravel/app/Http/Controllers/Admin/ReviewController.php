@@ -14,16 +14,14 @@ class ReviewController extends Controller
     public function index(Request $request)
     {
         $reviews = Review::with(['user:id,name', 'picture' => fn ($q) => $q->withTrashed()])
-            ->when($request->status === 'pending', fn ($q) => $q->where('approved', 0))
-            ->when($request->status === 'approved', fn ($q) => $q->where('approved', 1))
-            ->orderBy('approved')
+            ->when($request->status === 'hidden', fn ($q) => $q->where('approved', 0))
+            ->when($request->status === 'visible', fn ($q) => $q->where('approved', 1))
             ->latest()
             ->paginate(20)
             ->withQueryString();
 
         return view('admin.reviews.index', [
             'reviews' => $reviews,
-            'pendingCount' => Review::where('approved', 0)->count(),
         ]);
     }
 
@@ -34,7 +32,7 @@ class ReviewController extends Controller
         ]);
 
         return back()->with([
-            'success' => 'Review has been updated successfully.',
+            'success' => __('admin.flash.review_updated'),
         ]);
     }
 
@@ -43,7 +41,7 @@ class ReviewController extends Controller
         $review->delete();
 
         return back()->with([
-            'success' => 'Review has been deleted successfully.',
+            'success' => __('admin.flash.review_deleted'),
         ]);
     }
 }

@@ -1,5 +1,5 @@
 @extends('admin.layouts.app')
-@section('title', 'New category')
+@section('title', __('admin.categories.new'))
 
 @section('content')
     @include('admin.categories.form', ['action' => route('admin.categories.store')])

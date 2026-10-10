@@ -1,5 +1,5 @@
 @extends('admin.layouts.app')
-@section('title', 'Edit category')
+@section('title', __('admin.categories.edit'))
 
 @section('content')
     @include('admin.categories.form', [

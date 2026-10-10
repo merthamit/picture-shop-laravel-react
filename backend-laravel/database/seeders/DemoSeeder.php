@@ -113,7 +113,7 @@ class DemoSeeder extends Seeder
                         'picture_id' => $picture->id,
                         'comment' => $comment,
                         'rating' => $rating,
-                        'approved' => rand(1, 100) <= 85,
+                        'approved' => 1,
                     ]);
                 }
             }

@@ -86,6 +86,23 @@ export const removeItemFromCart = (item) => async (dispatch, getState) => {
   }
 };
 
+// Drop pictures the user already owns or bought (e.g. paid on another device)
+export const pruneOwnedItems = (user) => async (dispatch, getState) => {
+  if (!user) return;
+  const owned = new Set([
+    ...(user.orders || []).map((order) => order.picture.id),
+    ...(user.pictures || []).map((picture) => picture.id),
+  ]);
+  const stale = getState().cart.cartItems.filter((item) => owned.has(item.id));
+  for (const item of stale) {
+    const { token } = getState().user;
+    if (token) {
+      await axios.delete(`${BASE_URL}/cart/${item.id}`, getConfig(token)).catch(() => {});
+    }
+    dispatch(removeFromCart(item));
+  }
+};
+
 // After login: push any guest items to the server cart, then load it.
 export const syncCart = () => async (dispatch, getState) => {
   const { token } = getState().user;

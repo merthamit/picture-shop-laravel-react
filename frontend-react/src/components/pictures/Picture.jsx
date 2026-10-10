@@ -73,6 +73,11 @@ const Picture = () => {
     setDownloading(false);
   };
 
+  const reloadPicture = async () => {
+    const response = await axios.get(`${BASE_URL}/pictures/${id}`, getConfig(token));
+    setPicture(response.data.data);
+  };
+
   useEffect(() => {
     const fetchPictureById = async () => {
       setLoading(true);
@@ -162,7 +167,7 @@ const Picture = () => {
                 </div>
               )}
             </div>
-            <Reviews picture={picture} setLoading={setLoading} />
+            <Reviews picture={picture} setLoading={setLoading} onChanged={reloadPicture} />
           </div>
         </div>
 

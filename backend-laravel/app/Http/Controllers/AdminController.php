@@ -20,11 +20,11 @@ class AdminController extends Controller
         $completed = Order::where('orders.status', Order::STATUS_COMPLETED);
 
         $stats = [
+            'hidden_reviews' => Review::where('approved', 0)->count(),
             'revenue' => (clone $completed)->join('pictures', 'pictures.id', '=', 'orders.picture_id')->sum('pictures.price'),
             'orders' => Order::count(),
             'users' => User::count(),
             'pictures' => Picture::where('status', 1)->count(),
-            'pending_reviews' => Review::where('approved', 0)->count(),
             'categories' => Category::count(),
         ];
 
@@ -39,7 +39,7 @@ class AdminController extends Controller
 
         $chart = collect(range(0, 13))->map(function ($offset) use ($from, $daily) {
             $day = $from->copy()->addDays($offset);
-            return ['label' => $day->format('d M'), 'total' => (int) ($daily[$day->toDateString()] ?? 0)];
+            return ['label' => $day->translatedFormat('d M'), 'total' => (int) ($daily[$day->toDateString()] ?? 0)];
         });
 
         $recentOrders = Order::with(['user:id,name', 'picture'])->latest()->take(6)->get();
@@ -69,14 +69,25 @@ class AdminController extends Controller
         }
 
         return redirect()->route('admin.login')->withInput($request->only('email'))
-            ->with(['error' => 'These credentials do not match!']);
+            ->with(['error' => __('admin.login.failed')]);
+    }
+
+    public function switchLocale(string $locale)
+    {
+        if (in_array($locale, config('app.supported_locales'), true)) {
+            session(['admin_locale' => $locale]);
+        }
+
+        return back();
     }
 
     public function logout()
     {
+        $locale = session('admin_locale');
         auth()->guard('admin')->logout();
         request()->session()->invalidate();
         request()->session()->regenerateToken();
+        session(['admin_locale' => $locale]);
         return redirect()->route('admin.login');
     }
 }

@@ -33,7 +33,7 @@ class OrderController extends Controller
         $order->delete();
 
         return back()->with([
-            'success' => 'Order has been deleted successfully',
+            'success' => __('admin.flash.order_deleted'),
         ]);
     }
 }

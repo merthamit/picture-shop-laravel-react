@@ -7,7 +7,7 @@ import AddUpdateReview from "./AddUpdateReview";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-const Reviews = ({ picture, setLoading }) => {
+const Reviews = ({ picture, setLoading, onChanged }) => {
   const { user, token, isLoggedIn } = useSelector((state) => state.user);
   const [review, setReview] = useState({
     picture_id: "",
@@ -45,6 +45,8 @@ const Reviews = ({ picture, setLoading }) => {
 
       if (!response.data.error) {
         toast.success(response.data.message);
+        // Reviews are published immediately: reload them from the API
+        onChanged?.();
       } else {
         toast.error(response.data.error);
       }
@@ -81,6 +83,8 @@ const Reviews = ({ picture, setLoading }) => {
           (item) => item.id !== review.id
         );
         toast.success(response.data.message);
+        // Reviews are published immediately: reload them from the API
+        onChanged?.();
       } else {
         toast.error(response.data.error);
       }
@@ -107,6 +111,8 @@ const Reviews = ({ picture, setLoading }) => {
       if (!response.data.error) {
         picture.reviews = picture.reviews.filter((item) => item.id !== data.id);
         toast.success(response.data.message);
+        // Reviews are published immediately: reload them from the API
+        onChanged?.();
       } else {
         toast.error(response.data.error);
       }

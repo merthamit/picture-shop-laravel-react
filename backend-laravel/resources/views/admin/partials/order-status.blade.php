@@ -1,8 +1,8 @@
 @php
     $map = [
-        'completed' => ['pill-success', 'Completed'],
-        'pending' => ['pill-warning', 'Processing'],
-        'failed' => ['pill-danger', 'Failed'],
+        'completed' => ['pill-success', __('admin.status.completed')],
+        'pending' => ['pill-warning', __('admin.status.pending')],
+        'failed' => ['pill-danger', __('admin.status.failed')],
     ];
     [$class, $label] = $map[$status] ?? ['pill-muted', ucfirst($status)];
 @endphp

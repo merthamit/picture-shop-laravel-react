@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [AdminController::class, 'login'])->name('admin.login');
 Route::post('/auth', [AdminController::class, 'auth'])->name('admin.auth')->middleware('throttle:10,1');
+Route::get('/locale/{locale}', [AdminController::class, 'switchLocale'])->name('admin.locale');
 
 // Every admin page requires an authenticated admin
 Route::prefix('admin')->middleware('admin')->group(function () {

@@ -11,6 +11,7 @@
     </div>
     <div class="ms-auto d-flex align-items-center gap-2">
         @yield('actions')
+        @include('admin.partials.language')
         <div class="dropdown">
             <button class="btn btn-light d-flex align-items-center gap-2" data-bs-toggle="dropdown">
                 <span class="avatar">{{ strtoupper(substr(auth()->guard('admin')->user()->name, 0, 1)) }}</span>
@@ -25,8 +26,7 @@
                 <li>
                     <form action="{{ route('admin.logout') }}" method="POST">
                         @csrf
-                        <button class="dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i>Sign
-                            out</button>
+                        <button class="dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i>{{ __('admin.sign_out') }}</button>
                     </form>
                 </li>
             </ul>

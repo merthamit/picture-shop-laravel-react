@@ -19,10 +19,7 @@ class OrderController extends Controller
     public function store(Request $request, CartService $cart)
     {
         $user = $request->user();
-        // Skip pictures the user already owns or bought
-        $pictures = $this->resolvePictures($request->pictures)
-            ->reject(fn ($picture) => $picture->isOwnedBy($user) || $picture->isPurchasedBy($user))
-            ->values();
+        $pictures = $this->purchasablePictures($request->pictures, $user);
 
         if ($pictures->isEmpty()) {
             return response()->json(['errors' => ['pictures' => [__('messages.nothing_to_order')]]], 422);
@@ -54,14 +51,23 @@ class OrderController extends Controller
             return response()->json(['error' => __('messages.payment_not_configured')], 503);
         }
 
+        $pictures = $this->purchasablePictures($request->cartItems, $request->user());
+        if ($pictures->isEmpty()) {
+            return response()->json(['error' => __('messages.nothing_to_order')], 422);
+        }
+
         Stripe::setApiKey(config('services.stripe.secret'));
         try {
 
             // Create a PaymentIntent with amount and currency
             $paymentIntent = \Stripe\PaymentIntent::create([
-                'amount' => $this->calculateOrderTotal($this->resolvePictures($request->cartItems), $savingForDatabase = false),
+                'amount' => $this->calculateOrderTotal($pictures, $savingForDatabase = false),
                 'currency' => 'usd',
-                'description' => 'React Store',
+                'description' => 'Picture Shop order',
+                'metadata' => [
+                    'user_id' => $request->user()->id,
+                    'picture_ids' => $pictures->pluck('id')->implode(','),
+                ],
                 'setup_future_usage' => 'on_session',
             ]);
 
@@ -85,6 +91,17 @@ class OrderController extends Controller
         $ids = collect($items)->pluck('id')->filter()->unique();
 
         return Picture::whereIn('id', $ids)->where('status', 1)->get();
+    }
+
+    /**
+     * Pictures from the cart the user can actually buy: never charge for
+     * their own pictures or ones they already purchased.
+     */
+    private function purchasablePictures($items, $user)
+    {
+        return $this->resolvePictures($items)
+            ->reject(fn ($picture) => $picture->isOwnedBy($user) || $picture->isPurchasedBy($user))
+            ->values();
     }
 
     public function calculateOrderTotal($pictures, $savingForDatabase)

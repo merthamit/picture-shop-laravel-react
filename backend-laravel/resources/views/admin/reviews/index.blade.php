@@ -1,14 +1,14 @@
 @extends('admin.layouts.app')
-@section('title', 'Reviews')
-@section('subtitle', $pendingCount . ' waiting for approval')
+@section('title', __('admin.reviews.title'))
+@section('subtitle', __('admin.reviews.subtitle'))
 
 @section('content')
     <div class="panel">
         <div class="panel-header">
             <div class="btn-group btn-group-sm">
-                @foreach (['' => 'All', 'pending' => 'Pending', 'approved' => 'Approved'] as $value => $label)
+                @foreach (['' => 'filter.all', 'visible' => 'status.visible', 'hidden' => 'status.hidden'] as $value => $label)
                     <a href="{{ route('admin.reviews.index', array_filter(['status' => $value])) }}"
-                        class="btn {{ request('status', '') === $value ? 'btn-primary' : 'btn-light' }}">{{ $label }}</a>
+                        class="btn {{ request('status', '') === $value ? 'btn-primary' : 'btn-light' }}">{{ __('admin.' . $label) }}</a>
                 @endforeach
             </div>
         </div>
@@ -16,10 +16,10 @@
             <table class="table table-admin">
                 <thead>
                     <tr>
-                        <th>Picture</th>
-                        <th>Review</th>
-                        <th>By</th>
-                        <th>Status</th>
+                        <th>{{ __('admin.col.picture') }}</th>
+                        <th>{{ __('admin.col.review') }}</th>
+                        <th>{{ __('admin.col.by') }}</th>
+                        <th>{{ __('admin.col.status') }}</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -43,26 +43,28 @@
                             </td>
                             <td>
                                 @if ($review->approved)
-                                    <span class="pill pill-success">Approved</span>
+                                    <span class="pill pill-success">{{ __('admin.status.visible') }}</span>
                                 @else
-                                    <span class="pill pill-warning">Pending</span>
+                                    <span class="pill pill-muted">{{ __('admin.status.hidden') }}</span>
                                 @endif
                             </td>
                             <td class="text-end">
                                 <div class="d-inline-flex gap-1">
                                     @if ($review->approved)
                                         <a href="{{ route('admin.reviews.edit', ['review' => $review, 'status' => 0]) }}"
-                                            class="btn btn-sm btn-light"><i class="bi bi-eye-slash"></i> Hide</a>
+                                            class="btn btn-sm btn-light"><i class="bi bi-eye-slash"></i>
+                                            {{ __('admin.action.hide') }}</a>
                                     @else
                                         <a href="{{ route('admin.reviews.edit', ['review' => $review, 'status' => 1]) }}"
-                                            class="btn btn-sm btn-primary"><i class="bi bi-check2"></i> Approve</a>
+                                            class="btn btn-sm btn-primary"><i class="bi bi-eye"></i>
+                                            {{ __('admin.action.publish') }}</a>
                                     @endif
                                     <form action="{{ route('admin.reviews.destroy', $review) }}" method="post"
-                                        data-confirm="Delete this review?">
+                                        data-confirm="{{ __('admin.reviews.confirm_delete') }}">
                                         @csrf
                                         @method('DELETE')
-                                        <button class="btn btn-sm btn-icon btn-light text-danger" title="Delete"><i
-                                                class="bi bi-trash"></i></button>
+                                        <button class="btn btn-sm btn-icon btn-light text-danger"
+                                            title="{{ __('admin.action.delete') }}"><i class="bi bi-trash"></i></button>
                                     </form>
                                 </div>
                             </td>
@@ -70,7 +72,7 @@
                     @empty
                         <tr>
                             <td colspan="5">
-                                <div class="empty"><i class="bi bi-star"></i>No reviews found</div>
+                                <div class="empty"><i class="bi bi-star"></i>{{ __('admin.reviews.empty') }}</div>
                             </td>
                         </tr>
                     @endforelse
