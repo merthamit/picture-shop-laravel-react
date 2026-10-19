@@ -135,5 +135,7 @@ return [
         'review_deleted' => 'Yorum silindi.',
         'user_deleted' => 'Kullanıcı silindi.',
         'order_deleted' => 'Sipariş silindi.',
+        'category_has_pictures' => 'Bu kategoride hâlâ fotoğraf var. Önce onları taşıyın veya kaldırın.',
+        'user_has_sales' => 'Bu kullanıcı başka alıcılara fotoğraf satmış, silinemez.',
     ],
 ];

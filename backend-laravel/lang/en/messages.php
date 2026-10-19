@@ -23,4 +23,6 @@ return [
     'nothing_to_order' => 'There is nothing new to order in your cart.',
     'payment_not_configured' => 'Payments are not configured yet (missing Stripe key).',
     'payment_failed' => 'The payment provider could not be reached. Please try again.',
+    'payment_invalid' => 'We could not confirm this payment for your cart.',
+    'payment_already_used' => 'This payment has already been used for an order.',
 ];

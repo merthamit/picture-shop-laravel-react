@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Order;
 use App\Models\User;
 use Illuminate\Http\Request;
 
@@ -29,6 +30,14 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
+        // Deleting a seller would cascade to their pictures and wipe other buyers' purchases
+        $hasSales = Order::whereHas('picture', fn ($q) => $q->where('user_id', $user->id))
+            ->where('user_id', '!=', $user->id)
+            ->exists();
+        if ($hasSales) {
+            return back()->with(['error' => __('admin.flash.user_has_sales')]);
+        }
+
         $user->delete();
 
         return back()->with([

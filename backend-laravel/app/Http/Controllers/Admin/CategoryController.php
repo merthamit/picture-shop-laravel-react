@@ -74,6 +74,11 @@ class CategoryController extends Controller
      */
     public function destroy(Category $category)
     {
+        // Deleting would cascade to its pictures and to the buyers' orders
+        if ($category->pictures()->withTrashed()->exists()) {
+            return back()->with(['error' => __('admin.flash.category_has_pictures')]);
+        }
+
         $category->delete();
         return redirect()->route('admin.categories.index')->with(['success' => __('admin.flash.category_deleted')]);
     }

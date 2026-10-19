@@ -135,5 +135,7 @@ return [
         'review_deleted' => 'Review has been deleted.',
         'user_deleted' => 'User has been deleted.',
         'order_deleted' => 'Order has been deleted.',
+        'category_has_pictures' => 'This category still has pictures. Move or remove them first.',
+        'user_has_sales' => 'This user has sold pictures to other buyers and cannot be deleted.',
     ],
 ];

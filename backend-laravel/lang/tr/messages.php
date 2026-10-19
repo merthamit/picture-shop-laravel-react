@@ -23,4 +23,6 @@ return [
     'nothing_to_order' => 'Sepetinizde sipariş edilecek yeni bir ürün yok.',
     'payment_not_configured' => 'Ödeme sistemi henüz yapılandırılmadı (Stripe anahtarı eksik).',
     'payment_failed' => 'Ödeme sağlayıcısına ulaşılamadı. Lütfen tekrar deneyin.',
+    'payment_invalid' => 'Bu ödeme sepetiniz için doğrulanamadı.',
+    'payment_already_used' => 'Bu ödeme zaten bir sipariş için kullanıldı.',
 ];

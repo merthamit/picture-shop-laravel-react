@@ -23,7 +23,7 @@ export default function CheckoutForm() {
 
   const placeOrder = async (paymentIntent) => {
     try {
-      const response = await axios.post(`${BASE_URL}/store/order`, { pictures: cartItems }, getConfig(token));
+      const response = await axios.post(`${BASE_URL}/store/order`, { payment_intent_id: paymentIntent.id }, getConfig(token));
       dispatch(setCurrentUser(response.data.user));
       // Hand the receipt to the success page (it empties the cart once it is shown,
       // otherwise the checkout page would see an empty cart and bounce to /cart)

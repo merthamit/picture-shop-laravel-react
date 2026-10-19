@@ -11,7 +11,7 @@ class Order extends Model
     public const STATUS_COMPLETED = 'completed';
     public const STATUS_FAILED = 'failed';
 
-    protected $fillable = ['total', 'user_id', 'picture_id', 'status'];
+    protected $fillable = ['total', 'user_id', 'picture_id', 'status', 'payment_intent_id'];
     use HasFactory;
 
     public function user()

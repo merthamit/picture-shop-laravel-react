@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Admin;
+use App\Models\Category;
 use App\Models\Order;
 use App\Models\Picture;
 use App\Models\Review;
@@ -86,5 +87,29 @@ class ReviewAndAdminTest extends TestCase
         $this->from('/admin/reviews')->get(route('admin.reviews.edit', ['review' => $review, 'status' => 1]))
             ->assertRedirect('/admin/reviews');
         $this->assertSame(1, (int) $review->fresh()->approved);
+    }
+
+    public function test_deleting_a_category_or_seller_never_wipes_purchases(): void
+    {
+        $order = Order::factory()->create();
+        $picture = $order->picture;
+        $this->actingAs(Admin::factory()->create(), 'admin');
+
+        $this->from('/admin/categories')->delete(route('admin.categories.destroy', $picture->category))
+            ->assertRedirect('/admin/categories')->assertSessionHas('error');
+        $this->from('/admin/users')->delete(route('admin.users.destroy', $picture->user))
+            ->assertRedirect('/admin/users')->assertSessionHas('error');
+
+        $this->assertModelExists($picture->category);
+        $this->assertModelExists($picture->user);
+        $this->assertModelExists($order);
+
+        // Without pictures or sales they can still be removed
+        $emptyCategory = Category::create(['name' => 'Empty']);
+        $buyer = $order->user;
+        $this->delete(route('admin.categories.destroy', $emptyCategory))->assertSessionHas('success');
+        $this->delete(route('admin.users.destroy', $buyer))->assertSessionHas('success');
+        $this->assertModelMissing($emptyCategory);
+        $this->assertModelMissing($buyer);
     }
 }
