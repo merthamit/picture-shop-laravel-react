@@ -16,7 +16,28 @@ Laravel 11 · React 18 · MySQL · Redis · RabbitMQ · Cloudinary CDN · Stripe
 
 **[🇹🇷 Türkçe](#-türkçe)** · **[🇬🇧 English](#-english)**
 
+<br>
+
+<img src="docs/screenshots/01-home.jpg" alt="Picture Shop storefront" width="900">
+
 </div>
+
+## 🖼️ Ekran görüntüleri · Screenshots
+
+### Mağaza · Storefront
+
+| | |
+|:---:|:---:|
+| <img src="docs/screenshots/02-catalog-filters.jpg" alt="Catalog with filters"><br>**Katalog ve filtreler** · Catalog & filters | <img src="docs/screenshots/03-picture-detail.jpg" alt="Picture detail with watermarked preview"><br>**Filigranlı önizleme** · Watermarked preview |
+| <img src="docs/screenshots/04-cart.jpg" alt="Shopping cart"><br>**Sepet** · Cart | <img src="docs/screenshots/05-checkout-stripe.jpg" alt="Stripe checkout"><br>**Stripe ile ödeme** · Stripe checkout |
+| <img src="docs/screenshots/06-seller-dashboard.jpg" alt="Seller dashboard"><br>**Satıcı paneli** · Seller dashboard | <img src="docs/screenshots/07-upload.jpg" alt="Upload a picture"><br>**Fotoğraf yükleme** · Upload |
+
+### Admin paneli · Admin panel
+
+| | |
+|:---:|:---:|
+| <img src="docs/screenshots/08-admin-dashboard.jpg" alt="Admin dashboard"><br>**Gelir grafiği ve en çok satanlar** · Revenue & best sellers | <img src="docs/screenshots/09-admin-orders.jpg" alt="Admin orders"><br>**Sipariş yönetimi** · Orders |
+| <img src="docs/screenshots/10-admin-pictures.jpg" alt="Admin pictures"><br>**Fotoğraf yönetimi** · Pictures | |
 
 ---
 
@@ -262,6 +283,7 @@ backend-laravel/     Laravel API, admin panel, queue jobs, notifications, tests
 frontend-react/      React storefront
   src/i18n/          Turkish / English dictionaries
 docker/cdn/          nginx edge cache (used when Cloudinary is not configured)
+docs/screenshots/    README screenshots
 docker-compose.yml   app, queue-worker, web, cdn, frontend, mysql, redis, rabbitmq, mailpit
 .github/workflows/   CI: PHPUnit + Vitest + build
 ```
